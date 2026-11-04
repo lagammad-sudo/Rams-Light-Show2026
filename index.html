@@ -78,7 +78,7 @@ function syncClock(serverNow, rtt, receivedAt) {
   bestRtt = rtt; clockSkew = serverNow + rtt / 2 - receivedAt;
 }
 /* Address of the Apps Script web app (the one ending in /exec). Paste yours here. */
-const API = "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE";
+const API = "https://script.google.com/macros/s/AKfycby8NiSbvPSGnIr7Yw-KPz_vJGhw0CXnndiQ7c9PA9VqSy-Utu8F87OpLv3cja2lJKEQ/execYOUR_APPS_SCRIPT_EXEC_URL_HERE";
 const isAdminPage = /[?&]admin\b/.test(location.search);
 async function api(params) {
   if (API.indexOf("PASTE") === 0) throw new Error("The server address isn’t set in this page yet.");
