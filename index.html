@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="robots" content="noindex">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rams Light Show</title>
+<link href="https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@700&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root { --maroon: #8b1020; --gold: #F4C54F; --ink: #3b1018; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { min-height: 100vh; color: #fff; font-family: 'Nunito', system-ui, sans-serif; background: radial-gradient(ellipse at 50% 0%, #4a1020 0%, #1a0a10 55%, #0b0508 100%); -webkit-text-size-adjust: 100%; }
+  #lights { height: 18px; background:
+    radial-gradient(circle at 10px 9px, #e0243a 5px, transparent 6px) 0 0 / 60px 18px,
+    radial-gradient(circle at 30px 9px, #14a85a 5px, transparent 6px) 0 0 / 60px 18px,
+    radial-gradient(circle at 50px 9px, #ffffff 5px, transparent 6px) 0 0 / 60px 18px; opacity: 0.9; }
+  #home { max-width: 460px; margin: 0 auto; padding: 22px 18px 40px; text-align: center; }
+  h1 { margin: 6px 0 4px; font-family: 'Mountains of Christmas', cursive; font-size: 54px; line-height: 1.05; color: var(--gold); text-shadow: 0 3px 14px rgba(0,0,0,0.5); }
+  .tag { margin: 0 0 18px; font-weight: 800; font-size: 18px; color: rgba(255,255,255,0.85); }
+  #showbar { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; margin: 0 auto 16px; padding: 10px 14px; max-width: 520px; background: var(--maroon); color: #fff; border: 2px solid var(--gold); border-radius: 16px; font: 800 16px 'Nunito', system-ui, sans-serif; box-shadow: 0 6px 16px rgba(0,0,0,0.3); }
+  .joinbtn { appearance: none; border: 0; border-radius: 999px; padding: 16px 34px; font: 900 22px 'Nunito', system-ui, sans-serif; background: var(--gold); color: var(--ink); cursor: pointer; box-shadow: 0 8px 20px rgba(0,0,0,0.35); }
+  .joinbtn:active { transform: translateY(1px); }
+  .fine { margin: 16px auto 0; max-width: 340px; font-size: 14px; font-weight: 700; color: #9fd0b5; line-height: 1.4; }
+  #admin { margin-top: 30px; text-align: left; }
+  #admin[hidden] { display: none; }
+  .card { background: rgba(0,0,0,0.35); border: 2px solid rgba(244,197,79,0.5); border-radius: 18px; padding: 16px; }
+  .card h2 { margin: 0 0 8px; font-family: 'Mountains of Christmas', cursive; font-size: 32px; color: var(--gold); }
+  .card p { margin: 0 0 10px; font-weight: 700; font-size: 15px; line-height: 1.4; color: rgba(255,255,255,0.85); }
+  .card .big { font-size: 22px; font-weight: 900; color: #fff; }
+  .card label { display: block; margin: 10px 0 6px; font-weight: 800; font-size: 14px; }
+  .card input[type=time], .card input[type=password] { font: 800 20px 'Nunito', system-ui, sans-serif; padding: 8px 10px; border-radius: 10px; border: 2px solid var(--gold); background: #1a0a10; color: #fff; }
+  .acts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .acts button { appearance: none; border: 2px solid var(--gold); background: #1a0a10; color: #fff; border-radius: 999px; padding: 10px 16px; font: 900 15px 'Nunito', system-ui, sans-serif; cursor: pointer; }
+  .acts button.go { background: var(--gold); color: var(--ink); }
+  .acts button.stop { border-color: #888; color: #ddd; }
+  .note { min-height: 20px; margin-top: 10px; font-weight: 800; font-size: 14px; color: #9fd0b5; }
+  .note.err { color: #ff8a98; }
+  .note.warn { color: var(--gold); }
+
+  /* Assembly light show */
+  #lightshow { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9500; background: #000; color: #fff; font-family: 'Nunito', system-ui, sans-serif; display: flex; align-items: center; justify-content: center; touch-action: manipulation; user-select: none; -webkit-user-select: none; overflow: auto; }
+  #lightshow .ls-bg { position: absolute; inset: 0; background: #000; }
+  #lightshow .ls-x { position: absolute; top: max(8px, env(safe-area-inset-top)); right: 8px; z-index: 3; width: 48px; height: 48px; border-radius: 50%; border: 0; background: transparent; color: rgba(255,255,255,0.4); font-size: 30px; line-height: 1; cursor: pointer; }
+  #lightshow .ls-card { position: relative; z-index: 2; width: min(92vw, 400px); padding: 22px 18px; text-align: center; }
+  #lightshow h2 { margin: 0 0 12px; font-family: 'Mountains of Christmas', cursive; font-size: 44px; color: #F4C54F; }
+  #lightshow .ls-steps { text-align: left; margin: 0 auto 10px; padding-left: 22px; font-weight: 800; font-size: 17px; line-height: 1.45; }
+  #lightshow .ls-safe { margin: 6px 0 14px; font-size: 13px; color: #9fd0b5; font-weight: 700; }
+  #lightshow .ls-q { margin: 0 0 10px; font-weight: 800; font-size: 17px; }
+  #lightshow .ls-secs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  #lightshow .ls-secs button { appearance: none; border: 2px solid #F4C54F; background: #1a0a10; color: #fff; border-radius: 14px; min-height: 56px; font: 900 22px 'Nunito', system-ui, sans-serif; cursor: pointer; }
+  #lightshow .ls-secs button.wide { grid-column: 1 / -1; min-height: 46px; font-size: 16px; border-color: #666; }
+  #lightshow .ls-center { position: relative; z-index: 2; text-align: center; padding: 16px; }
+  #lightshow .ls-big { font: 900 clamp(48px, 16vw, 96px) 'Nunito', system-ui, sans-serif; line-height: 1.05; text-shadow: 0 0 20px rgba(0,0,0,0.5); }
+  #lightshow .ls-sub { margin-top: 8px; font-weight: 800; font-size: 18px; color: rgba(255,255,255,0.8); }
+  #lightshow .ls-text { position: absolute; left: 0; right: 0; bottom: 18%; z-index: 2; text-align: center; font: 900 clamp(44px, 15vw, 90px) 'Nunito', system-ui, sans-serif; color: #fff; opacity: 0; letter-spacing: 0.02em; text-shadow: 0 0 24px rgba(0,0,0,0.35); }
+  #lightshow .ls-done { margin-top: 18px; appearance: none; border: 0; border-radius: 999px; padding: 12px 26px; font: 900 17px 'Nunito', system-ui, sans-serif; background: #F4C54F; color: #3b1018; cursor: pointer; }
+</style>
+</head>
+<body>
+<div id="lights" aria-hidden="true"></div>
+<main id="home">
+  <h1>Rams Light Show</h1>
+  <p class="tag">Turn the gym into a sea of lights!</p>
+  <div id="showbar" role="status"><span id="sbText">Checking the show time…</span></div>
+  <button type="button" class="joinbtn" id="joinBtn">Join the light show</button>
+  <p class="fine">Slow color changes only. No fast flashing. Keep this page open until the end.</p>
+  <section id="admin" hidden></section>
+</main>
+
+<script>
+/* ---------- page helpers ---------- */
+let clockSkew = 0, bestRtt = Infinity;
+const nowMs = () => Date.now() + clockSkew;
+/* Trust the server clock only when the round trip was quick (under 0.8 s); otherwise keep the phone's own clock. */
+function syncClock(serverNow, rtt, receivedAt) {
+  if (typeof serverNow !== "number" || !(rtt < 800) || rtt >= bestRtt) return;
+  bestRtt = rtt; clockSkew = serverNow + rtt / 2 - receivedAt;
+}
+/* Address of the Apps Script web app (the one ending in /exec). Paste yours here. */
+const API = "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE";
+const isAdminPage = /[?&]admin\b/.test(location.search);
+async function api(params) {
+  if (API.indexOf("PASTE") === 0) throw new Error("The server address isn’t set in this page yet.");
+  const q = new URLSearchParams(Object.assign({ _: Math.random().toString(36).slice(2) }, params)).toString();
+  const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 15000);
+  try {
+    const res = await fetch(API + (API.indexOf("?") >= 0 ? "&" : "?") + q, { credentials: "omit", redirect: "follow", signal: ctl.signal });
+    const j = await res.json();
+    if (j && j.error) throw new Error(j.error);
+    return j;
+  } finally { clearTimeout(to); }
+}
+/* Same three calls the show code already uses, now plain web requests. */
+function gas(fn, ...args) {
+  if (fn === "boot") return api({ action: "show" }).then((r) => Object.assign({ isAdmin: isAdminPage }, r));
+  if (fn === "getShow") return api({ action: "show" });
+  if (fn === "adminSetShow") {
+    const o = args[0] || {}, k = document.getElementById("adminKey");
+    return api({ action: "set", key: k ? k.value : "", mode: o.mode || "", seconds: o.seconds || "", time: o.time || "" });
+  }
+  return Promise.reject(new Error("Unknown call"));
+}
+async function timed(fn, ...args) {
+  const t0 = Date.now(), r = await gas(fn, ...args), t1 = Date.now();
+  if (r && typeof r.serverNow === "number") syncClock(r.serverNow, t1 - t0, t1);
+  return r;
+}
+function friendly(err) {
+  const m = String((err && err.message) || err || "Something went wrong.").replace(/^Error:\s*/, "");
+  if (/fetch|network|abort|load failed/i.test(m)) return "Can’t reach the show server. Check your connection.";
+  return m.length > 140 ? "Something went wrong. Try again." : m;
+}
+function el(tag, attrs, ...kids) {
+  const n = document.createElement(tag);
+  Object.keys(attrs || {}).forEach((k) => {
+    if (k === "text") n.textContent = attrs[k];
+    else if (k.startsWith("on")) n[k] = attrs[k];
+    else n.setAttribute(k, attrs[k]);
+  });
+  kids.forEach((c) => n.appendChild(typeof c === "string" ? document.createTextNode(c) : c));
+  return n;
+}
+const fmtTime = (ms) => new Date(ms).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", timeZone: "America/New_York" });
+const fmtClock = (s) => Math.floor(s / 60) + ":" + String(Math.floor(s % 60)).padStart(2, "0");
+
+/* ---------- Assembly light show ---------- */
+(function () {
+  const WAKE_VIDEO = "data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAANJbW9vdgAAAGxtdmhkAAAAAAAAAAAAAAAAAAAD6AAAB9AAAQAAAQAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAnN0cmFrAAAAXHRraGQAAAADAAAAAAAAAAAAAAABAAAAAAAAB9AAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAABAAAAAQAAAAAAAkZWR0cwAAABxlbHN0AAAAAAAAAAEAAAfQAAAAAAABAAAAAAHrbWRpYQAAACBtZGhkAAAAAAAAAAAAAAAAAAAoAAAAUABVxAAAAAAALWhkbHIAAAAAAAAAAHZpZGUAAAAAAAAAAAAAAABWaWRlb0hhbmRsZXIAAAABlm1pbmYAAAAUdm1oZAAAAAEAAAAAAAAAAAAAACRkaW5mAAAAHGRyZWYAAAAAAAAAAQAAAAx1cmwgAAAAAQAAAVZzdGJsAAAAtnN0c2QAAAAAAAAAAQAAAKZhdmMxAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAABAAEABIAAAASAAAAAAAAAABFUxhdmM2MC4zMS4xMDIgbGlieDI2NAAAAAAAAAAAAAAAGP//AAAALGF2Y0MBQsAe/+EAFWdCwB7aewEQAAADABAAAAMAoPFi6gEABGjOD8gAAAAQcGFzcAAAAAEAAAABAAAAFGJ0cnQAAAAAAAALWAAAC1gAAAAYc3R0cwAAAAAAAAABAAAACgAACAAAAAAUc3RzcwAAAAAAAAABAAAAAQAAABxzdHNjAAAAAAAAAAEAAAABAAAACgAAAAEAAAA8c3RzegAAAAAAAAAAAAAACgAAAoUAAAAJAAAACQAAAAkAAAAJAAAACQAAAAkAAAAJAAAACQAAAAkAAAAUc3RjbwAAAAAAAAABAAADeQAAAGJ1ZHRhAAAAWm1ldGEAAAAAAAAAIWhkbHIAAAAAAAAAAG1kaXJhcHBsAAAAAAAAAAAAAAAALWlsc3QAAAAlqXRvbwAAAB1kYXRhAAAAAQAAAABMYXZmNjAuMTYuMTAwAAAACGZyZWUAAALebWRhdAAAAm8GBf//a9xF6b3m2Ui3lizYINkj7u94MjY0IC0gY29yZSAxNjQgcjMxMDggMzFlMTlmOSAtIEguMjY0L01QRUctNCBBVkMgY29kZWMgLSBDb3B5bGVmdCAyMDAzLTIwMjMgLSBodHRwOi8vd3d3LnZpZGVvbGFuLm9yZy94MjY0Lmh0bWwgLSBvcHRpb25zOiBjYWJhYz0wIHJlZj0xIGRlYmxvY2s9MTowOjAgYW5hbHlzZT0weDE6MHgxMTEgbWU9aGV4IHN1Ym1lPTIgcHN5PTEgcHN5X3JkPTEuMDA6MC4wMCBtaXhlZF9yZWY9MCBtZV9yYW5nZT0xNiBjaHJvbWFfbWU9MSB0cmVsbGlzPTAgOHg4ZGN0PTAgY3FtPTAgZGVhZHpvbmU9MjEsMTEgZmFzdF9wc2tpcD0xIGNocm9tYV9xcF9vZmZzZXQ9MCB0aHJlYWRzPTEgbG9va2FoZWFkX3RocmVhZHM9MSBzbGljZWRfdGhyZWFkcz0wIG5yPTAgZGVjaW1hdGU9MSBpbnRlcmxhY2VkPTAgYmx1cmF5X2NvbXBhdD0wIGNvbnN0cmFpbmVkX2ludHJhPTAgYmZyYW1lcz0wIHdlaWdodHA9MCBrZXlpbnQ9MjUwIGtleWludF9taW49NSBzY2VuZWN1dD00MCBpbnRyYV9yZWZyZXNoPTAgcmNfbG9va2FoZWFkPTEwIHJjPWNyZiBtYnRyZWU9MSBjcmY9MjMuMCBxY29tcD0wLjYwIHFwbWluPTAgcXBtYXg9NjkgcXBzdGVwPTQgaXBfcmF0aW89MS40MCBhcT0xOjEuMDAAgAAAAA5liIQEf///D0UAASq/gAAAAAVBmiAR9QAAAAVBmkAR9QAAAAVBmmAR9QAAAAVBmoAR9QAAAAVBmqAR9QAAAAVBmsAR9QAAAAVBmuAR9QAAAAVBmwAQ9QAAAAVBmyA/1A==";
+  const DUR = 60;
+  const C = { red: [224, 36, 58], green: [20, 168, 90], gold: [255, 200, 61], night: [8, 56, 34], white: [255, 255, 255], maroon: [133, 16, 42], black: [0, 0, 0] };
+  const TR = [C.red, C.green, C.white];                       // the three "scripts": every phone is secretly on one of them
+  const mixc = (a, b, f) => a.map((v, i) => v + (b[i] - v) * f);
+  const scl = (a, f) => a.map((v) => v * f);
+  const sm = (x) => { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); };
+  const hh = (s, n) => { const x = Math.sin(s * 12.9898 + n * 78.233) * 43758.5453; return x - Math.floor(x); };
+  const css = (c) => "rgb(" + c.map((v) => Math.round(Math.max(0, Math.min(255, v)))).join(",") + ")";
+  const mod = (n, m) => ((n % m) + m) % m;
+
+  /* P = { track: 0..2 (random), sec: 0..5 (section chosen), seed: random } */
+  const SCENES = [
+    { t0: 0,  f: (t, P) => scl(TR[P.track], sm(t / 3)) },                                                  // 0-6   fade in, a mix of red, green and white
+    { t0: 6,  f: (t, P) => {                                                                                // 6-16  twinkle
+        const per = 1.8 + hh(P.seed, 1) * 1.2, w = 0.5 + 0.5 * Math.sin(2 * Math.PI * (t / per + hh(P.seed, 2))), g = Math.pow(w, 3), b = TR[P.track];
+        return mixc(scl(b, 0.38), mixc(b, C.white, 0.75), g); } },
+    { t0: 16, f: (t, P) => {                                                                                // 16-28 waves roll across the sections
+        const k = t < 22 ? 0 : 1, u = (t - 16 - 6 * k) / 6 * 7.6 - 1.3, x = k === 0 ? P.sec : 5 - P.sec;
+        const L = sm(Math.max(0, 1 - Math.abs(u - x) / 1.4)), b = k === 0 ? TR[P.track] : mixc(TR[P.track], C.white, 0.55);
+        return mixc(scl(b, 0.12), b, L); } },
+    { t0: 28, f: (t, P) => {                                                                                // 28-38 the three colors rotate through the crowd
+        const idx = (t - 28) / 2.2 + P.track, i = Math.floor(idx);
+        return mixc(TR[mod(i, 3)], TR[mod(i + 1, 3)], sm(idx - i)); } },
+    { t0: 38, f: (t, P) => {                                                                                // 38-46 candy cane stripes
+        const par = (P.track + P.sec) % 2, k = (t - 38) / 1.5, i = Math.floor(k), fr = sm(Math.min(1, (k - i) * 3));
+        const col = (s) => (s ? C.white : C.red);
+        return mixc(col(mod(i - 1 + par, 2)), col(mod(i + par, 2)), fr); } },
+    { t0: 46, f: (t, P) => {                                                                                // 46-52 snow: soft white glows on a deep green night
+        const s = Math.sin(2 * Math.PI * (t / (2.4 + hh(P.seed, 3) * 1.8) + hh(P.seed, 4)));
+        return mixc(C.night, C.white, Math.pow(Math.max(0, s), 6) * 0.95); } },
+    { t0: 52, f: (t, P) => {                                                                                // 52-60 school colors: maroon and white
+        const u = t - 52, col = (s) => (s ? C.white : C.maroon);
+        if (u < 3) return mixc(C.night, C.maroon, sm(u / 2.5));
+        if (u < 6) { const kf = (u - 3) / 1.5, i = Math.floor(kf), fr = sm(Math.min(1, (kf - i) * 3)); return mixc(i === 0 ? C.maroon : col(mod(i - 1 + P.sec, 2)), col(mod(i + P.sec, 2)), fr); }
+        return mixc(col(mod(1 + P.sec, 2)), C.maroon, sm((u - 6) / 0.8)); } },
+  ];
+  function colorAt(t, P) {
+    t = Math.max(0, Math.min(DUR, t));
+    let i = SCENES.length - 1; while (i > 0 && t < SCENES[i].t0) i--;
+    const s = SCENES[i]; let c = s.f(t, P);
+    if (i > 0 && t - s.t0 < 0.9) c = mixc(SCENES[i - 1].f(t, P), c, sm((t - s.t0) / 0.9));
+    return { c, text: t >= 58 ? sm((t - 58) / 1) : 0 };
+  }
+  window.__showColor = (t, P) => colorAt(t, P).c;
+
+  /* ----- state ----- */
+  let showStart = 0, ov = null, raf = 0, poll = 0, wl = null, vid = null, me = null, rehearse = false, startsAt = 0;
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  const setT = (node, text) => { if (node && node.textContent !== text) node.textContent = text; };
+
+  /* ----- home page: status bar and join button ----- */
+  function renderBar() {
+    const t = document.getElementById("sbText");
+    if (!t) return;
+    t.textContent = showStart && nowMs() < showStart + 65000
+      ? "✨ Light show at " + fmtTime(showStart)
+      : "Show time isn’t set yet. Join now and your phone will wait.";
+  }
+  window.__setShow = (v) => { showStart = Number(v) || 0; renderBar(); if (cardStatus) cardStatus(); };
+  setInterval(renderBar, 30000);
+
+  /* ----- the show screen ----- */
+  function keepAwake() {
+    try { if (navigator.wakeLock) navigator.wakeLock.request("screen").then((l) => { wl = l; }).catch(() => {}); } catch (e) { /* ok */ }
+    try {
+      if (!vid) {
+        vid = document.createElement("video"); vid.src = WAKE_VIDEO; vid.muted = true; vid.loop = true;
+        vid.setAttribute("playsinline", ""); vid.setAttribute("aria-hidden", "true");
+        vid.style.cssText = "position:fixed;width:1px;height:1px;opacity:0.01;pointer-events:none;left:0;top:0";
+        ov.appendChild(vid);
+      }
+      vid.play().catch(() => {});
+    } catch (e) { /* ok */ }
+  }
+  function closeShow() {
+    cancelAnimationFrame(raf); clearTimeout(poll);
+    try { if (wl) wl.release(); } catch (e) { /* ok */ }
+    wl = null; vid = null; if (ov) ov.remove(); ov = null;
+  }
+  function openShow(isRehearsal) {
+    if (ov) return;
+    rehearse = !!isRehearsal; me = null; startsAt = 0;
+    ov = document.createElement("div"); ov.id = "lightshow"; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-label", "Light show");
+    document.body.appendChild(ov); intro();
+  }
+  const xBtn = () => '<button type="button" class="ls-x" aria-label="Leave the light show">&times;</button>';
+  function intro() {
+    ov.innerHTML = xBtn() + '<div class="ls-card"><h2>Light Show!</h2>' +
+      '<ol class="ls-steps"><li>Turn your screen brightness <b>all the way up</b>.</li><li>Set Auto-Lock to <b>Never</b> if you can.</li><li>Hold your phone up high when it starts.</li><li>Keep this screen open until the end.</li></ol>' +
+      '<p class="ls-safe">Slow color changes only. No fast flashing.</p>' +
+      '<p class="ls-q">Where are you sitting?</p><div class="ls-secs">' + ["A", "B", "C", "D", "E", "F"].map((s, i) => '<button type="button" data-s="' + i + '">' + s + '</button>').join("") + '<button type="button" data-s="-1" class="wide">Not sure</button></div></div>';
+    ov.querySelector(".ls-x").onclick = closeShow;
+    ov.querySelectorAll("[data-s]").forEach((b) => { b.onclick = () => join(Number(b.dataset.s)); });
+  }
+  async function join(sec) {
+    me = { track: Math.floor(Math.random() * 3), sec: sec >= 0 ? sec : Math.floor(Math.random() * 6), seed: Math.random() * 1000 + 1 };
+    ov.innerHTML = xBtn() + '<div class="ls-card"><h2>Getting ready…</h2><p class="ls-q">Syncing with the big screen.</p></div>';
+    ov.querySelector(".ls-x").onclick = closeShow;
+    keepAwake();                                   // must run inside the tap, before any await
+    if (rehearse) { startsAt = nowMs() + 8000; }
+    else {
+      // One call both fetches the start time and measures the clock; try twice if the first trip was slow.
+      for (let i = 0; i < 2 && ov; i++) {
+        try { const r = await timed("getShow"); startsAt = r.startsAt || 0; if (bestRtt < 800) break; } catch (e) { /* retry once */ }
+        if (i === 0) await wait(300 + Math.random() * 400);
+      }
+    }
+    if (!ov) return;
+    ov.innerHTML = '<div class="ls-bg"></div>' + xBtn() + '<div class="ls-center"><div class="ls-big"></div><div class="ls-sub"></div></div><div class="ls-text"></div>';
+    ov.querySelector(".ls-x").onclick = closeShow;
+    if (vid && !vid.isConnected) ov.appendChild(vid);
+    if (!rehearse) schedulePoll();
+    raf = requestAnimationFrame(frame);
+  }
+  async function pollNow() {
+    if (!ov || rehearse) return;
+    const left = startsAt ? startsAt - nowMs() : 1e9;
+    if (left > 20000) {                            // stop asking in the last 20 seconds
+      try { const r = await timed("getShow"); startsAt = r.startsAt || 0; } catch (e) { /* try again later */ }
+    }
+  }
+  function schedulePoll() {
+    clearTimeout(poll);
+    poll = setTimeout(async () => {
+      await pollNow();
+      if (ov && (!startsAt || nowMs() - startsAt < DUR * 1000)) schedulePoll();
+    }, 45000 + Math.random() * 45000);             // 45 to 90 seconds, jittered
+  }
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState !== "visible" || !ov) return;
+    try { if (navigator.wakeLock) navigator.wakeLock.request("screen").then((l) => { wl = l; }).catch(() => {}); } catch (e) { /* ok */ }
+    if (vid) vid.play().catch(() => {});
+    if (!rehearse) setTimeout(pollNow, Math.random() * 3000);   // catch up after the screen was off
+  });
+  function frame() {
+    if (!ov) return;
+    const bg = ov.querySelector(".ls-bg"), big = ov.querySelector(".ls-big"), sub = ov.querySelector(".ls-sub"), tx = ov.querySelector(".ls-text");
+    if (!bg) { raf = requestAnimationFrame(frame); return; }
+    const t = startsAt ? (nowMs() - startsAt) / 1000 : -1e9;
+    if (!startsAt) { bg.style.background = "#000"; setT(big, "Almost time"); setT(sub, "The show isn’t scheduled yet. Keep this screen open."); tx.style.opacity = 0; }
+    else if (t < -3) {
+      bg.style.background = "#000"; setT(big, fmtClock(Math.ceil(-t))); setT(sub, "Starts soon. Brightness up! Section " + "ABCDEF"[me.sec] + ".");
+      tx.style.opacity = 0;
+    } else if (t < 0) { bg.style.background = "#000"; setT(big, String(Math.ceil(-t))); setT(sub, "Phone up!"); tx.style.opacity = 0; }
+    else if (t <= DUR) {
+      const r = colorAt(t, me); bg.style.background = css(r.c); setT(big, ""); setT(sub, ""); setT(tx, "GO RAMS!"); tx.style.opacity = r.text;
+    } else {
+      const f = sm((t - DUR) / 2.5); bg.style.background = css(scl(C.maroon, 1 - f)); tx.style.opacity = 0;
+      setT(big, "Thanks, Rams!"); big.style.opacity = f; setT(sub, "Merry Christmas!"); sub.style.opacity = f;
+      if (!ov.querySelector(".ls-done")) { const b = document.createElement("button"); b.type = "button"; b.className = "ls-done"; b.textContent = "Close"; b.onclick = closeShow; ov.querySelector(".ls-center").appendChild(b); }
+    }
+    if (t <= DUR + 1) { big.style.opacity = ""; sub.style.opacity = ""; }
+    raf = requestAnimationFrame(frame);
+  }
+
+  /* ----- teacher controls (only built when the server says you are the owner) ----- */
+  let cardStatus = null;
+  window.__showCard = () => {
+    const st = el("p", { class: "big", id: "showStatus" });
+    const cd = el("p", { id: "showCountdown" });
+    const time = el("input", { type: "time", id: "showTime" });
+    const keyIn = el("input", { type: "password", id: "adminKey", autocomplete: "current-password", placeholder: "Admin key" });
+    try { keyIn.value = localStorage.getItem("lsKey") || ""; } catch (e) { /* ok */ }
+    const msg = el("p", { class: "note", id: "showNote", role: "status" });
+    const run = async (o) => {
+      try {
+        const r = await timed("adminSetShow", o);
+        try { localStorage.setItem("lsKey", keyIn.value); } catch (e) { /* ok */ }
+        window.__setShow(r.startsAt);
+        const lead = (r.startsAt - nowMs()) / 1000;
+        if (!r.startsAt) { msg.className = "note"; msg.textContent = "Show cancelled."; }
+        else if (lead < 90) { msg.className = "note warn"; msg.textContent = "Scheduled for " + fmtTime(r.startsAt) + ", but only " + Math.round(lead) + " s away. Phones that haven’t checked yet may miss it."; }
+        else { msg.className = "note"; msg.textContent = "Scheduled for " + fmtTime(r.startsAt) + ". Start the music on the 0 of the countdown."; }
+      } catch (e) { msg.className = "note err"; msg.textContent = friendly(e); }
+    };
+    cardStatus = () => { st.textContent = showStart && nowMs() < showStart + 65000 ? "Scheduled for " + fmtTime(showStart) + " Eastern" : "No show scheduled"; };
+    cardStatus();
+    setInterval(() => {
+      const s = showStart ? (showStart - nowMs()) / 1000 : 0;
+      cd.textContent = s > 0 ? "Starts in " + fmtClock(Math.ceil(s)) : (showStart && s > -DUR ? "Show is running now" : "");
+      cardStatus();
+    }, 1000);
+    return el("div", { class: "card" },
+      el("h2", { text: "Show controls" }),
+      el("p", { text: "Students scan the QR code, tap Join, pick a section and wait. When you set a time, their phones pick it up within about 90 seconds and play the 60-second show on their own." }),
+      st, cd,
+      el("label", { for: "adminKey" }, "Admin key (the ADMIN_KEY you set in Apps Script)"), keyIn,
+      el("label", { for: "showTime" }, "Start at a clock time (today)"), time,
+      el("div", { class: "acts" },
+        el("button", { type: "button", class: "go", text: "Set this time", onclick: () => run({ mode: "time", time: time.value }) })),
+      el("label", {}, "…or start from now"),
+      el("div", { class: "acts" },
+        el("button", { type: "button", class: "go", text: "In 2 min", onclick: () => run({ mode: "in", seconds: 120 }) }),
+        el("button", { type: "button", text: "In 90 s", onclick: () => run({ mode: "in", seconds: 90 }) }),
+        el("button", { type: "button", text: "In 3 min", onclick: () => run({ mode: "in", seconds: 180 }) }),
+        el("button", { type: "button", text: "In 5 min", onclick: () => run({ mode: "in", seconds: 300 }) })),
+      el("div", { class: "acts" },
+        el("button", { type: "button", class: "stop", text: "Cancel show", onclick: () => run({ mode: "off" }) }),
+        el("button", { type: "button", text: "Rehearse on this phone", onclick: () => openShow(true) }),
+        el("button", { type: "button", text: "Join as a guest", onclick: () => openShow(false) })),
+      msg);
+  };
+  window.__openShow = openShow;
+})();
+
+/* ---------- start up ---------- */
+document.getElementById("joinBtn").onclick = () => window.__openShow(false);
+(async function () {
+  try {
+    const b = await timed("boot");
+    window.__setShow(b.startsAt);
+    if (b.isAdmin) { const a = document.getElementById("admin"); a.hidden = false; a.appendChild(window.__showCard()); }
+  } catch (e) {
+    document.getElementById("sbText").textContent = "Can’t reach the show server yet. You can still join.";
+  }
+})();
+</script>
+</body>
+</html>
